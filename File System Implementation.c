@@ -32,12 +32,14 @@ void touch (Dir* parent, char* name) {
 		parent ->  head_children_files -> next = NULL;
 	} else {
 		int ok = 1;
+		File *aux2 = parent -> head_children_files;
 		while (parent -> head_children_files && ok) {
 			if (!strcmp(parent -> head_children_files -> name, name)) {
 				printf("File already exists\n");
 				ok = 0;
 				parent -> head_children_files = aux;
 			} else {
+				aux2 = parent -> head_children_files;
 				parent -> head_children_files = parent -> head_children_files -> next;
 			}
 		}
@@ -48,8 +50,8 @@ void touch (Dir* parent, char* name) {
 			p -> name = (char*)malloc(20 * sizeof(char));
 			strcpy(p -> name, name);
 			p -> parent = parent;
-			p -> next = NULL;
-			parent -> head_children_files -> next = p;
+			p -> next = NULL; 
+			aux2-> next= p;
 			parent -> head_children_files = aux;
 		}
 	}
@@ -120,7 +122,57 @@ void ls (Dir* parent) {
 
 }
 
-void rm (Dir* parent, char* name) {}
+void rm (Dir* parent, char* name) {
+	
+	if (!parent -> head_children_files) {
+		printf("Could not find the file\n");
+	} else {
+
+		int ok = 1;
+		if (parent -> head_children_files -> next == NULL && ok) {
+			ok  = 0;
+			if (!strcmp(parent -> head_children_files -> name, name)) {
+				File *aux = parent -> head_children_files;
+				parent -> head_children_files = NULL;
+				free(aux -> name);
+				free(aux);
+			} else {
+				printf("Could not find the file\n");
+			}
+		}
+
+		if (ok) {
+			File *aux = parent -> head_children_files;
+			File *p = parent -> head_children_files;
+			int gasit = 1;
+			if (!strcmp(aux -> name, name)) {
+				parent -> head_children_files = aux -> next;
+				free(p -> name);
+				free(p);
+				gasit = 0;
+			} else {
+				aux = aux -> next;
+				while (aux && gasit) {
+					if (!strcmp(aux -> name, name)) {
+						p -> next = aux -> next;
+						free(aux -> name);
+						free(aux);
+						gasit = 0;
+					} else {
+						aux = aux -> next;
+						p = p -> next;
+					}
+				}
+			}
+			if (gasit) {
+				printf("Could not find the file\n");
+			}
+		}
+		
+
+	}
+
+}
 
 void rmdir (Dir* parent, char* name) {}
 
@@ -147,7 +199,7 @@ int main () {
 	char *nume = (char*)malloc(20 * sizeof(char));
 	do
 	{
-		// citest comanda
+		
 		scanf("%s", comanda);
 
 		if (!strcmp(comanda, "touch")) {
@@ -170,6 +222,11 @@ int main () {
 		
 
 			ls(dir);
+		}
+
+		if (!strcmp(comanda, "rm")) {
+			scanf("%s", nume);
+			rm(dir, nume);
 		}
 
 	} while (strcmp(comanda,"stop") != 0);
